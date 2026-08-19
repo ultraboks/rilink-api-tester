@@ -1,0 +1,9 @@
+# Claude Code local session artifacts (not part of the project)
+.claude/
+
+# Dependencies (none required to run this project, but ignore if ever added)
+node_modules/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

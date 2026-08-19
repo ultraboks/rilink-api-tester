@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rilink Developer API Tester</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔌</text></svg>" />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">🔌</span>
+      <div>
+        <h1>Rilink Developer API Tester</h1>
+        <p>Uji langsung endpoint Developer Messaging API milik Rilink dari lokal.</p>
+      </div>
+    </div>
+    <a class="brand-link" href="#reference">Referensi endpoint ↓</a>
+  </header>
+
+  <div class="banner" role="alert">
+    <strong>Perhatian:</strong> tool ini memanggil API produksi/dev Rilink yang sebenarnya lewat proxy lokal.
+    Mengirim payload <code>text</code>/<code>image</code>/<code>video</code>/<code>audio</code>/<code>document</code>/<code>button</code>/<code>list</code>/<code>carousel</code>
+    yang valid akan benar-benar mengirim pesan WhatsApp nyata melalui device yang terhubung ke token Anda.
+  </div>
+
+  <main class="layout">
+
+    <!-- LEFT: connection + composer -->
+    <section class="col col-form">
+
+      <div class="card">
+        <h2>1. Koneksi</h2>
+        <div class="field">
+          <label for="baseUrl">Base URL</label>
+          <input id="baseUrl" type="text" value="https://rilink.id" placeholder="https://rilink.id" />
+          <p class="hint">Ganti ke <code>http://localhost:8000</code> (atau port <code>php artisan serve</code> Anda) untuk menguji ke instance dev lokal.</p>
+        </div>
+        <div class="field">
+          <label for="token">Bearer Token</label>
+          <div class="input-with-btn">
+            <input id="token" type="password" placeholder="Tempel personal access token dari Manage Tokens" />
+            <button type="button" class="btn-ghost" id="toggleTokenVisibility">Lihat</button>
+          </div>
+          <p class="hint">Buat token di halaman <code>Developer API → Manage Tokens</code> pada dashboard Rilink (ability <code>messages:send</code>).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Skenario Cepat</h2>
+        <p class="hint">Uji jalur error tanpa efek nyata (gagal sebelum pesan terkirim ke WhatsApp).</p>
+        <div class="scenario-grid">
+          <button type="button" class="btn-secondary" data-scenario="no-token">Tanpa Token (expect 401)</button>
+          <button type="button" class="btn-secondary" data-scenario="missing-device">Tanpa device_id/sender_phone (expect 422)</button>
+          <button type="button" class="btn-secondary" data-scenario="invalid-type">Type Tidak Valid (expect 422)</button>
+          <button type="button" class="btn-secondary" data-scenario="missing-text">Text Kosong utk type=text (expect 422)</button>
+          <button type="button" class="btn-secondary" data-scenario="invalid-sender-phone">sender_phone Tidak Terdaftar (expect 422)</button>
+          <button type="button" class="btn-secondary" data-scenario="mismatch">device_id ≠ sender_phone (expect 422)</button>
+          <button type="button" class="btn-secondary" data-scenario="button-no-media">Button Tanpa media_url (expect 422)</button>
+          <button type="button" class="btn-secondary" data-scenario="list-no-media">List Tanpa media_url (expect 422)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Compose Pesan</h2>
+
+        <div class="field">
+          <label>Identifikasi pengirim <span class="req">*</span></label>
+          <div class="radio-row">
+            <label class="radio-option"><input type="radio" name="senderMode" value="device_id" checked /> device_id (integer)</label>
+            <label class="radio-option"><input type="radio" name="senderMode" value="sender_phone" /> sender_phone (nomor WhatsApp)</label>
+          </div>
+          <p class="hint">API menerima salah satu saja — <code>device_id</code> ATAU <code>sender_phone</code> (keduanya <code>required_without</code> satu sama lain). Kalau dua-duanya diisi dan tidak cocok, API menolak dengan 422.</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field" id="deviceIdField">
+            <label for="device_id">device_id</label>
+            <input id="device_id" type="number" placeholder="12" />
+          </div>
+          <div class="field" id="senderPhoneField" style="display:none">
+            <label for="sender_phone">sender_phone</label>
+            <input id="sender_phone" type="text" placeholder="6281234567890" />
+          </div>
+          <div class="field">
+            <label for="to">to <span class="req">*</span></label>
+            <input id="to" type="text" placeholder="6281234567890" />
+          </div>
+        </div>
+
+        <div class="field">
+          <button type="button" class="btn-ghost" id="loadDevices">Ambil Daftar Device (GET /api/v1/devices)</button>
+          <select id="deviceSelect" style="display:none; margin-top: 8px;"></select>
+          <div id="deviceListStatus" class="hint"></div>
+        </div>
+
+        <div class="field">
+          <label for="type">type <span class="req">*</span></label>
+          <select id="type">
+            <option value="text">text</option>
+            <option value="image">image</option>
+            <option value="video">video</option>
+            <option value="audio">audio</option>
+            <option value="document">document</option>
+            <option value="button">button</option>
+            <option value="list">list</option>
+            <option value="carousel">carousel</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <button type="button" class="btn-ghost" id="loadExample">Muat contoh payload untuk type ini</button>
+        </div>
+
+        <!-- Dynamic per-type fields render here -->
+        <div id="dynamicFields"></div>
+
+        <div class="field">
+          <label for="contact_name">contact_name <span class="opt">(opsional)</span></label>
+          <input id="contact_name" type="text" placeholder="Nama kontak baru bila belum ada" />
+        </div>
+        <div class="checkbox-field">
+          <input type="checkbox" id="save_contact" />
+          <label for="save_contact">save_contact — simpan <code>to</code> sebagai kontak baru bila belum ada (pakai <code>contact_name</code> di atas)</label>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-primary" id="sendBtn">Kirim Request</button>
+          <button type="button" class="btn-ghost" id="curlBtn">Lihat sebagai cURL</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: response + reference -->
+    <section class="col col-result">
+
+      <div class="card result-card">
+        <h2>Response</h2>
+        <div id="responseMeta" class="response-meta empty">Belum ada request dikirim.</div>
+        <pre id="responseBody" class="response-body"></pre>
+      </div>
+
+      <div class="card">
+        <h2>Riwayat Request</h2>
+        <div id="history" class="history empty">Belum ada riwayat.</div>
+      </div>
+
+      <div class="card" id="reference">
+        <h2>Referensi Endpoint</h2>
+        <dl class="ref-list">
+          <dt>Endpoints</dt>
+          <dd>
+            <code>POST /api/v1/messages/send</code><br />
+            <code>GET /api/v1/devices</code>
+          </dd>
+          <dt>Auth</dt>
+          <dd>Laravel Sanctum bearer token, ability <code>messages:send</code>. Role <code>agent</code> ditolak (403). Token yang sudah lewat <code>expires_at</code> otomatis dihapus &amp; ditolak (401).</dd>
+          <dt>Rate limit</dt>
+          <dd>60 request / menit per token (<code>throttle:60,1</code>) — berlaku untuk kedua endpoint.</dd>
+          <dt>Prasyarat</dt>
+          <dd>Plan tenant harus mengaktifkan <code>developer_api_enabled</code>; kuota harian opsional lewat <code>developer_api_daily_message_limit</code> (berlaku untuk <code>messages/send</code>, bukan <code>devices</code>).</dd>
+          <dt>Header wajib</dt>
+          <dd>
+            <code>Authorization: Bearer YOUR_TOKEN</code><br />
+            <code>Accept: application/json</code><br />
+            <code>Content-Type: application/json</code> <span class="opt">(hanya untuk POST)</span>
+          </dd>
+        </dl>
+
+        <h3>GET /api/v1/devices</h3>
+        <ul class="ref-fields">
+          <li>Tidak butuh parameter. Mengembalikan hanya device milik tenant dengan <code>status = "connected"</code>.</li>
+          <li>Response: <code>{"data": [{"id": 1, "name": "...", "sender_phone": "6281...", "status": "connected"}, ...]}</code></li>
+          <li>Gunakan <code>id</code> untuk field <code>device_id</code>, atau <code>sender_phone</code> langsung sebagai pengganti <code>device_id</code> pada <code>messages/send</code>.</li>
+        </ul>
+
+        <h3>Identifikasi pengirim di messages/send</h3>
+        <ul class="ref-fields">
+          <li><code>device_id</code> (integer) — dicocokkan langsung ke kolom <code>id</code> device yang <code>connected</code>.</li>
+          <li><code>sender_phone</code> (string, alternatif) — dicocokkan ke <code>phone_number</code> device; dinormalisasi otomatis oleh server (buang suffix JID <code>:16</code>/<code>@s.whatsapp.net</code>, awalan <code>0</code> diganti kode negara default <code>62</code>, awalan <code>00</code> dibuang).</li>
+          <li>Salah satu wajib diisi (<code>required_without</code> satu sama lain). Jika keduanya diisi dan tidak merujuk device yang sama → 422 <code>"The device_id does not match the selected sender_phone."</code></li>
+        </ul>
+
+        <p class="hint"><strong>Update 18 Agt 2026:</strong> <code>media_url</code> kini <strong>wajib</strong> untuk <code>button</code> dan <code>list</code> (sebelumnya opsional/diabaikan untuk <code>list</code>). Dikonfirmasi end-to-end sampai ke gateway WhatsApp (Baileys): untuk <code>button</code> hanya format image yang didukung sebagai header; untuk <code>list</code>, image/video/dokumen didukung sebagai header pesan interaktif.</p>
+
+        <h3>Field per type (messages/send)</h3>
+        <ul class="ref-fields">
+          <li><strong>text</strong> — <code>text</code> (wajib)</li>
+          <li><strong>image / video / audio / document</strong> — <code>media_url</code> (wajib), <code>text</code> (opsional, jadi caption), <code>mime_type</code>, <code>file_name</code> (opsional, biasanya untuk document), <code>ptt</code> (boolean, khusus audio = voice note)</li>
+          <li><strong>button</strong> — <code>media_url</code> <strong>wajib</strong> (jadi header image di pesan tombol), <code>text</code>, <code>title</code>, <code>subtitle</code>, <code>footer</code> opsional, <code>buttons[]</code> (wajib min 1, maks 10 — tiap button: <code>text</code> wajib, <code>id</code>/<code>type</code>/<code>value</code>/<code>url</code>/<code>phoneNumber</code> opsional)</li>
+          <li><strong>list</strong> — <code>media_url</code> <strong>wajib</strong> (jadi header image/video/dokumen di pesan list), <code>text</code>, <code>title</code>, <code>subtitle</code>, <code>footer</code>, <code>button_text</code> opsional, <code>sections[]</code> (wajib min 1, maks 20 — tiap section punya <code>title</code> dan <code>rows[]</code> min 1 maks 10, tiap row: <code>title</code> wajib)</li>
+          <li><strong>carousel</strong> — <code>text</code>, <code>title</code>, <code>subtitle</code>, <code>footer</code>, <code>cards[]</code> (wajib min 1, maks 10 — tiap card: <code>title</code>/<code>subtitle</code>/<code>body</code>/<code>footer</code>/<code>media_url</code> opsional, <code>buttons[]</code> wajib min 1)</li>
+          <li><strong>semua type</strong> — <code>contact_name</code> dan <code>save_contact</code> (boolean) opsional: jika <code>to</code> belum jadi kontak dan <code>save_contact=true</code>, kontak baru dibuat pakai <code>contact_name</code>.</li>
+        </ul>
+
+        <h3>Contoh error</h3>
+        <ul class="ref-fields">
+          <li><strong>401</strong> — token tidak ada / tidak valid (Sanctum default), atau <code>"This API token has expired."</code> bila <code>expires_at</code> sudah lewat.</li>
+          <li><strong>403</strong> — <code>"This token is not allowed to use the Developer API."</code> (role agent), atau <code>"This token does not have permission to send messages."</code> (token tanpa ability <code>messages:send</code>).</li>
+          <li><strong>422</strong> — validasi gagal (field wajib hilang/salah format), <code>device_id</code>/<code>sender_phone</code> tidak valid/tidak <code>connected</code>/tidak cocok satu sama lain, plan tidak mengaktifkan Developer API, atau kuota harian habis. Bentuk: <code>{"message": "...", "errors": {...}}</code>.</li>
+          <li><strong>429</strong> — melebihi rate limit 60 req/menit.</li>
+        </ul>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    Dibuat untuk menguji <code>dev_code</code> Rilink secara lokal via proxy — lihat <code>README.md</code> di folder ini.
+  </footer>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

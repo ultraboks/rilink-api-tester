@@ -1,0 +1,13 @@
+{
+  "name": "rilink-developer-api-tester",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Alat uji lokal untuk Rilink Developer Messaging API (POST /api/v1/messages/send).",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
