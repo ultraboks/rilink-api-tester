@@ -1,7 +1,6 @@
 # Rilink Developer API Tester
 
-Website lokal sederhana untuk menguji langsung **Rilink Developer Messaging API**
-(diperiksa dari `D:\home\new_rilink\dev_code`).
+Website lokal sederhana untuk menguji langsung **Rilink Developer Messaging API**.
 
 ## Ringkasan API yang diuji
 
@@ -47,7 +46,6 @@ dari Developer API publik, jadi tidak disertakan di tool ini.
 Butuh Node.js ≥ 18 (tidak ada dependency npm yang perlu di-install).
 
 ```bash
-cd D:\home\new_rilink\api_test
 node server.js
 ```
 
@@ -55,7 +53,7 @@ Buka `http://localhost:4780` di browser.
 
 ## Mengapa ada server lokal, bukan HTML statis saja?
 
-Backend Rilink (`dev_code`) tidak punya `config/cors.php`, jadi API-nya tidak mengirim header
+Backend Rilink tidak memiliki konfigurasi CORS publik, jadi API-nya tidak mengirim header
 `Access-Control-Allow-Origin`. Kalau halaman statis langsung `fetch()` ke `https://rilink.id`
 dari browser, request preflight (`OPTIONS`) akan diblokir CORS. `server.js` menyediakan dua
 endpoint proxy same-origin (`POST /api/proxy/send`, `POST /api/proxy/devices`) yang meneruskan
@@ -67,8 +65,8 @@ di mana pun — token hanya diteruskan per-request.
 
 1. Buat personal access token dari halaman **Developer API** di dashboard Rilink (perlu plan yang
    mengaktifkan `developer_api_enabled`). Tempel token itu ke field **Bearer Token**.
-2. Isi **Base URL** — default `https://rilink.id`, atau arahkan ke instance dev lokal Anda
-   (misalnya `http://localhost:8000` kalau `dev_code` dijalankan via `php artisan serve`).
+2. Isi **Base URL** — default `https://rilink.id`, atau arahkan ke instance development lokal Anda
+   (misalnya `http://localhost:8000` kalau backend dijalankan via `php artisan serve`).
 3. Di **Compose Pesan**, pilih cara mengidentifikasi device pengirim: `device_id` (integer) atau
    `sender_phone` (nomor WhatsApp device). Kalau tidak hafal ID/nomornya, klik **"Ambil Daftar
    Device (GET /api/v1/devices)"** — dropdown akan terisi device yang `connected` di akun Anda
