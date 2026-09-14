@@ -96,7 +96,7 @@ function cardRowEl() {
       <div class="field"><label>body <span class="opt">(opsional)</span></label><textarea data-f="body"></textarea></div>
       <div class="field-row">
         <div class="field"><label>footer <span class="opt">(opsional)</span></label><input type="text" data-f="footer" /></div>
-        <div class="field"><label>media_url <span class="opt">(opsional)</span></label><input type="text" data-f="media_url" /></div>
+        <div class="field"><label>media_url <span class="req">*</span></label><input type="text" data-f="media_url" /></div>
       </div>
       <div class="subgroup">
         <div class="group-box-header">
