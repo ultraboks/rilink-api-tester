@@ -60,7 +60,7 @@
           <button type="button" class="btn-secondary" data-scenario="invalid-sender-phone">sender_phone Tidak Terdaftar (expect 422)</button>
           <button type="button" class="btn-secondary" data-scenario="mismatch">device_id ≠ sender_phone (expect 422)</button>
           <button type="button" class="btn-secondary" data-scenario="button-no-media">Button Tanpa media_url (expect 422)</button>
-          <button type="button" class="btn-secondary" data-scenario="list-no-media">List Tanpa media_url (expect 422)</button>
+          <button type="button" class="btn-secondary" data-scenario="list-no-media">List Tanpa media_url (expect 200)</button>
         </div>
       </div>
 
@@ -185,14 +185,14 @@
           <li>Salah satu wajib diisi (<code>required_without</code> satu sama lain). Jika keduanya diisi dan tidak merujuk device yang sama → 422 <code>"The device_id does not match the selected sender_phone."</code></li>
         </ul>
 
-        <p class="hint"><strong>Update 18 Agt 2026:</strong> <code>media_url</code> kini <strong>wajib</strong> untuk <code>button</code> dan <code>list</code> (sebelumnya opsional/diabaikan untuk <code>list</code>). Dikonfirmasi end-to-end sampai ke gateway WhatsApp (Baileys): untuk <code>button</code> hanya format image yang didukung sebagai header; untuk <code>list</code>, image/video/dokumen didukung sebagai header pesan interaktif.</p>
+        <p class="hint"><strong>Update:</strong> <code>media_url</code> <strong>wajib</strong> untuk <code>button</code>, namun <strong>opsional</strong> untuk <code>list</code>. Dikonfirmasi end-to-end sampai ke gateway WhatsApp (Baileys): untuk <code>button</code> hanya format image yang didukung sebagai header; untuk <code>list</code>, image/video/dokumen didukung sebagai header pesan interaktif, tapi bisa dikosongkan.</p>
 
         <h3>Field per type (messages/send)</h3>
         <ul class="ref-fields">
           <li><strong>text</strong> — <code>text</code> (wajib)</li>
           <li><strong>image / video / audio / document</strong> — <code>media_url</code> (wajib), <code>text</code> (opsional, jadi caption), <code>mime_type</code>, <code>file_name</code> (opsional, biasanya untuk document), <code>ptt</code> (boolean, khusus audio = voice note)</li>
           <li><strong>button</strong> — <code>media_url</code> <strong>wajib</strong> (jadi header image di pesan tombol), <code>text</code>, <code>title</code>, <code>subtitle</code>, <code>footer</code> opsional, <code>buttons[]</code> (wajib min 1, maks 10 — tiap button: <code>text</code> wajib, <code>id</code>/<code>type</code>/<code>value</code>/<code>url</code>/<code>phoneNumber</code> opsional)</li>
-          <li><strong>list</strong> — <code>media_url</code> <strong>wajib</strong> (jadi header image/video/dokumen di pesan list), <code>text</code>, <code>title</code>, <code>subtitle</code>, <code>footer</code>, <code>button_text</code> opsional, <code>sections[]</code> (wajib min 1, maks 20 — tiap section punya <code>title</code> dan <code>rows[]</code> min 1 maks 10, tiap row: <code>title</code> wajib)</li>
+          <li><strong>list</strong> — <code>media_url</code> <strong>opsional</strong> (jadi header image/video/dokumen di pesan list bila diisi), <code>text</code>, <code>title</code>, <code>subtitle</code>, <code>footer</code>, <code>button_text</code> opsional, <code>sections[]</code> (wajib min 1, maks 20 — tiap section punya <code>title</code> dan <code>rows[]</code> min 1 maks 10, tiap row: <code>title</code> wajib)</li>
           <li><strong>carousel</strong> — <code>text</code>, <code>title</code>, <code>subtitle</code>, <code>footer</code>, <code>cards[]</code> (wajib min 1, maks 10 — tiap card: <code>title</code>/<code>subtitle</code>/<code>body</code>/<code>footer</code>/<code>media_url</code> opsional, <code>buttons[]</code> wajib min 1)</li>
           <li><strong>semua type</strong> — <code>contact_name</code> dan <code>save_contact</code> (boolean) opsional: jika <code>to</code> belum jadi kontak dan <code>save_contact=true</code>, kontak baru dibuat pakai <code>contact_name</code>.</li>
         </ul>

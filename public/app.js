@@ -158,7 +158,7 @@ function renderDynamicFields(type) {
   } else if (type === 'list') {
     container.appendChild(el(`
       <div>
-        <div class="field"><label>media_url <span class="req">*</span></label><input type="text" id="f_media_url" placeholder="https://example.com/banner.jpg" /></div>
+        <div class="field"><label>media_url <span class="opt">(opsional)</span></label><input type="text" id="f_media_url" placeholder="https://example.com/banner.jpg" /></div>
         <div class="field"><label>text <span class="opt">(opsional)</span></label><input type="text" id="f_text" /></div>
         <div class="field-row">
           <div class="field"><label>title <span class="opt">(opsional)</span></label><input type="text" id="f_title" /></div>
