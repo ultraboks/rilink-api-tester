@@ -201,3 +201,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Rilink Developer API Tester running at http://localhost:${PORT}`);
 });
+
+module.exports = app;

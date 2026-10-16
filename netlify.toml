@@ -1,0 +1,8 @@
+[build]
+  functions = "netlify/functions"
+  publish = "public" # atau folder file HTML jika ada frontend statis
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
